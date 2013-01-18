@@ -29,6 +29,7 @@ class ArtistDictionary:
             if r is None:
                 return None
             else:
+                self.dic[r[0]] = item
                 return r[0]
 
         elif isinstance(item, basestring):
@@ -41,9 +42,19 @@ class ArtistDictionary:
             return -1
         elif key in self.dic:
             #update
+            run_query(self.db, 'UPDATE artists SET artists.name=%s WHERE artists.id=%s' % (value, key))
             self.dic[key] = value
             return key
         else:
-            run_query(self.db, 'INSERT INTO artists VALUES(null, %s)' % value)
-            r = get_row(self.db, 'SELECT artists.id FROM artists WHERE artists.name=%s' % value)
+            run_query(self.db, 'INSERT INTO artists VALUES(null,"%s")' % value)
+            return self.__getitem__(value)
 
+    def add(self, value):
+        if value in self.dic.values():
+            for (k,v) in self.dic.items():
+                if v == value:
+                    return k
+        else:
+            run_query(self.db, 'INSERT INTO artists VALUES(null, "%s")' % value)
+            return self.__getitem__(value)
+        return -1
