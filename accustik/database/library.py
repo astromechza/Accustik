@@ -4,6 +4,7 @@ from accustik.logger import log
 import os
 
 import accustik.data.data as data
+from accustik.database.artist_dictionary import ArtistDictionary
 
 class Library:
     """
@@ -14,7 +15,7 @@ class Library:
 
     def __init__(self, dbfile):
         self.dbfile = dbfile
-        self.artists = DBBackedDictionary(db=self, lookup_query='SELECT artists.name FROM artists WHERE artists.id=%s')
+        self.artists = ArtistDictionary(db=dbfile)
         self.albums = DBBackedDictionary(db=self, lookup_query='SELECT albums.name FROM albums WHERE albums.id=%s')
         self.genres = DBBackedDictionary(db=self, lookup_query='SELECT genres.name FROM genres WHERE genres.id=%s')
 

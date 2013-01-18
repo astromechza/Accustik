@@ -1,6 +1,7 @@
 import sqlite3
 
 def get_row(database, sql):
+
     try:
         con = sqlite3.connect(database)
         cur = con.cursor()
@@ -9,6 +10,7 @@ def get_row(database, sql):
         return r
 
     except sqlite3.Error, e:
+        print e
         return None
     finally:
         if con:

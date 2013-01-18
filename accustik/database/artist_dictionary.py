@@ -19,14 +19,24 @@ class ArtistDictionary:
                     self.dic[item] = r[0]
                     return r[0]
 
-        elif isinstance(item, unicode) or isinstance(item, basestring):
+        elif isinstance(item, unicode):
             for (k,v) in self.dic.items():
-                if v == unicode(item):
+                if v == item:
                     return k
 
+            r = get_row(self.db, 'SELECT artists.id FROM artists WHERE artists.name LIKE "%s"' % item)
+
+            if r is None:
+                return None
+            else:
+                return r[0]
+
+        elif isinstance(item, basestring):
+            return self.__getitem__(unicode(item))
 
 
-    def __setitem__(self, key, value):
+
+    def set(self, key, value):
         if key == -1:
             return -1
         elif key in self.dic:
