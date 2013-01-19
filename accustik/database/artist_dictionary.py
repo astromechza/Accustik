@@ -10,7 +10,8 @@ class ArtistDictionary:
 
     def __getitem__(self, key):
         """
-        Used by artst[id] or artist['name']
+        Used by artst[id] or artist['name'], this is database backed so that if items don't exist they are fetched
+        from the cache
         """
         if isinstance(key, int):
             # if key is an integer
@@ -52,24 +53,32 @@ class ArtistDictionary:
 
 
 
-    def set(self, key, value):
-        if key == -1:
-            return -1
-        elif key in self.dic:
-            #update
-            run_query(self.db_file, 'UPDATE artists SET artists.name=%s WHERE artists.id=%s' % (value, key))
-            self.dic[key] = value
-            return key
-        else:
-            run_query(self.db_file, 'INSERT INTO artists VALUES(null,"%s")' % value)
-            return self.__getitem__(value)
+    def set(self, artist_id, artist_name):
+        """
 
-    def add(self, value):
-        if value in self.dic.values():
+        """
+        if artist_id == -1:
+            return -1
+        # run a get query
+        existing_name = self.__getitem__(artist_id)
+
+        if existing_name is None:
+            return False
+        else:
+            #update
+            run_query(self.db_file, 'UPDATE artists SET artists.name=%s WHERE artists.id=%s' % (artist_name, artist_id))
+            self.dic[artist_id] = artist_name
+            return True
+
+    def add(self, artist_name):
+        """
+        Add an artist name to the dictionary and return its artist_id
+        """
+        if artist_name in self.dic.values():
             for (k,v) in self.dic.items():
-                if v == value:
+                if v == artist_name:
                     return k
         else:
-            run_query(self.db_file, 'INSERT INTO artists VALUES(null, "%s")' % value)
-            return self.__getitem__(value)
+            run_query(self.db_file, 'INSERT INTO artists VALUES(null, "%s")' % artist_name)
+            return self.__getitem__(artist_name)
         return -1
