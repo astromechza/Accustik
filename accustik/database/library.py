@@ -15,7 +15,7 @@ class Library:
 
     def __init__(self, dbfile):
         self.dbfile = dbfile
-        self.artists = ArtistDictionary(db=dbfile)
+        self.artists = ArtistDictionary(db_file=dbfile)
         self.albums = DBBackedDictionary(db=self, lookup_query='SELECT albums.name FROM albums WHERE albums.id=%s')
         self.genres = DBBackedDictionary(db=self, lookup_query='SELECT genres.name FROM genres WHERE genres.id=%s')
 
