@@ -19,7 +19,7 @@ for id, artist in s['artists']:
     assert testdb.artists[id] == artist
 
 # are they all loaded into dic
-assert len(testdb.artists.dic) == len(sample_data.sample['artists'])
+assert len(testdb.artists) == len(sample_data.sample['artists'])
 
 # test putting a record into dictionary
 id = testdb.artists.add(u'Emma')

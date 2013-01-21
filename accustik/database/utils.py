@@ -35,3 +35,4 @@ def run_query(database, sql):
     finally:
         if con:
             con.close()
+

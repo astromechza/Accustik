@@ -1,4 +1,6 @@
 from utils import get_row, run_query
+from accustik.logger import log
+import sqlite3
 
 class ArtistDictionary:
     """
@@ -7,6 +9,9 @@ class ArtistDictionary:
     def __init__(self, db_file):
         self.dic = {}
         self.db_file = db_file
+
+    def __len__(self):
+        return self.dic.__len__()
 
     def __getitem__(self, key):
         """
@@ -86,3 +91,20 @@ class ArtistDictionary:
             run_query(self.db_file, 'INSERT INTO artists VALUES(null, "%s")' % artist_name)
             return self.__getitem__(artist_name)
         return -1
+
+    def add_bulk(self, artist_list):
+        con = None
+        try:
+            con = sqlite3.connect('t.db')
+            cur = con.cursor()
+
+            for artist in artist_list:
+                pass
+            con.commit()
+
+        except sqlite3.Error, e:
+            log.exception("SQLite3 ERROR %s" % e)
+        finally:
+            if con:
+                con.close()
+
