@@ -1,7 +1,8 @@
 import sqlite3
+from accustik.logger import log
 
 def get_row(database, sql):
-
+    con = None
     try:
         con = sqlite3.connect(database)
         cur = con.cursor()
@@ -10,7 +11,7 @@ def get_row(database, sql):
         return r
 
     except sqlite3.Error, e:
-        print e
+        log.exception("SQLite3 ERROR %s" % e)
         return None
     finally:
         if con:
@@ -20,6 +21,7 @@ def run_query(database, sql):
     """
     INSERT UPDATE DELETE
     """
+    con = None
     try:
         con = sqlite3.connect(database)
         cur = con.cursor()
@@ -28,6 +30,7 @@ def run_query(database, sql):
         return True
 
     except sqlite3.Error, e:
+        log.exception("SQLite3 ERROR %s" % e)
         return False
     finally:
         if con:

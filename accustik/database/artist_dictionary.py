@@ -55,7 +55,7 @@ class ArtistDictionary:
 
     def set(self, artist_id, artist_name):
         """
-
+        SET an existing item in the dictionary, if the item does not exist return false
         """
         if artist_id == -1:
             return -1
@@ -66,6 +66,7 @@ class ArtistDictionary:
             return False
         else:
             #update
+
             run_query(self.db_file, 'UPDATE artists SET artists.name=%s WHERE artists.id=%s' % (artist_name, artist_id))
             self.dic[artist_id] = artist_name
             return True
@@ -74,6 +75,9 @@ class ArtistDictionary:
         """
         Add an artist name to the dictionary and return its artist_id
         """
+        artist_name = unicode(artist_name.strip())
+        if artist_name == u'':
+            return -1
         if artist_name in self.dic.values():
             for (k,v) in self.dic.items():
                 if v == artist_name:
