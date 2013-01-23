@@ -7,7 +7,7 @@ a database in testing and deployment. Schemas should follow SQL and sqlite3 spec
 
 schema = {
     'artists' : '"id" INTEGER PRIMARY KEY AUTOINCREMENT, \
-                 "name" TEXT NOT NULL',
+                 "name" TEXT UNIQUE ON CONFLICT IGNORE',
 
     'genres' : '"id" INTEGER PRIMARY KEY AUTOINCREMENT, \
                  "name" TEXT NOT NULL',
