@@ -41,3 +41,18 @@ print d[10]
 print d['johnson']
 
 print s.stop()
+
+print d.add('bob')
+print d.add('charles')
+print d.add('bob')
+
+print d.count_cache()
+
+d.clear_cache()
+
+print d.count_cache()
+
+print d.add('bob')
+print d.add('charles')
+
+print d.count_cache()

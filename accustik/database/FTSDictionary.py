@@ -17,9 +17,9 @@ class FTSDictionary:
 
     def add(self, data):
         if not isinstance(data, basestring):
-            return False
+            return -1
         if data in self.fromdata:
-            return False
+            return self.fromdata[data]
 
         con = None
         try:
@@ -43,7 +43,7 @@ class FTSDictionary:
         finally:
             if con:
                 con.close()
-
+        return -1
     def add_from_generator(self, gen):
         con = None
         try:
@@ -186,5 +186,10 @@ class FTSDictionary:
             if con:
                 con.close()
 
+    def clear_cache(self):
+        self.fromdata.clear()
+        self.todata.clear()
 
+    def count_cache(self):
+        return len(self.todata.keys())
 
