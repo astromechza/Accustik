@@ -27,9 +27,8 @@ class Library:
 
     def _add_folder(self, path):
         for f in os.listdir(path):
-            reader = get_reader(os.path.join(f))
+            reader = get_reader(os.path.join(path, f))
             sd = reader.read()
-
             if sd is None:
                 log.debug('Unsupported filetype: ' + reader.file)
             else:
