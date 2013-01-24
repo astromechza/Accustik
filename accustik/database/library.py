@@ -3,6 +3,7 @@ import sqlite3
 from accustik.logger import log
 import os
 from accustik.database.FTSDictionary import FTSDictionary
+from accustik.database.FTSSongLibrary import FTSSongLibrary
 import accustik.data.data as data
 
 class Library:
@@ -14,7 +15,7 @@ class Library:
 
     def __init__(self, dbfile):
         self.dbfile = dbfile
-        self.artists = FTSDictionary(self.dbfile, 'artists')
-        self.albums = FTSDictionary(self.dbfile, 'albums')
-        self.genres = FTSDictionary(self.dbfile, 'genres')
+        self.songs = FTSSongLibrary(self.dbfile, True)
+
+        
 

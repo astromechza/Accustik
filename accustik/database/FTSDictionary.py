@@ -3,17 +3,48 @@ from accustik.logger import log
 
 class FTSDictionary:
 
-    def __init__(self, f, column_name):
+    def __init__(self, f, column_name, overwrite = False):
         self.todata = {}
         self.fromdata = {}
         self.file = f
-        self.column_name = column_name
-        self.sql_insert = 'INSERT INTO %s VALUES (?)' % self.column_name
-        self.sql_select_id_by_content = 'SELECT rowid FROM %s WHERE content MATCH ?' % self.column_name
-        self.sql_select_content_by_id = 'SELECT content FROM %s WHERE rowid = ?' % self.column_name
-        self.sql_create_table = 'CREATE VIRTUAL TABLE %s USING fts4(content TEXT UNIQUE ON CONFLICT IGNORE)' % self.column_name
-        self.sql_drop_table = 'DROP TABLE IF EXISTS ' + self.column_name
-        self.sql_update_content_by_id = 'UPDATE %s SET content = ? WHERE rowid = ?' % self.column_name
+        self.table_name = column_name
+        self.sql_insert = 'INSERT INTO %s VALUES (?)' % self.table_name
+        self.sql_select_id_by_content = 'SELECT rowid FROM %s WHERE content MATCH ?' % self.table_name
+        self.sql_select_content_by_id = 'SELECT content FROM %s WHERE rowid = ?' % self.table_name
+        self.sql_create_table = 'CREATE VIRTUAL TABLE IF NOT EXISTS %s USING fts4(content TEXT UNIQUE ON CONFLICT IGNORE)' % self.table_name
+        self.sql_drop_table = 'DROP TABLE IF EXISTS ' + self.table_name
+        self.sql_update_content_by_id = 'UPDATE %s SET content = ? WHERE rowid = ?' % self.table_name
+
+        # ensure table exists
+        # if overwrite is True then drop table before creating
+
+        con = None
+        try:
+
+            if overwrite:
+                con = sqlite3.connect(self.file)
+                cur = con.cursor()
+
+                cur.execute(self.sql_drop_table)
+
+                con.commit()
+                con.close()
+
+
+            con = sqlite3.connect(self.file)
+            cur = con.cursor()
+
+            cur.execute(self.sql_create_table)
+            con.commit()
+
+        except sqlite3.Error:
+            log.exception('')
+        finally:
+            if con:
+                con.close()
+
+
+
 
     def add(self, data):
         if not isinstance(data, basestring):
@@ -76,10 +107,10 @@ class FTSDictionary:
     def __getitem__(self, item):
         if isinstance(item, basestring):
             if self.fromdata.has_key(item):
-                log.debug('DICTIONARY_HIT: %s[%s]' % (self.column_name, item))
+                log.debug('DICTIONARY_HIT: %s[%s]' % (self.table_name, item))
                 return self.fromdata.__getitem__(item)
             else:
-                log.debug('DICTIONARY_MISS: %s[%s]' % (self.column_name, item))
+                log.debug('DICTIONARY_MISS: %s[%s]' % (self.table_name, item))
                 con = None
                 try:
                     con = sqlite3.connect(self.file)
@@ -88,7 +119,7 @@ class FTSDictionary:
                     cur.execute( self.sql_select_id_by_content,[item])
                     r = cur.fetchone()
                     if r == None:
-                        log.debug('DATABASE_MISS: %s[%s]' % (self.column_name, item))
+                        log.debug('DATABASE_MISS: %s[%s]' % (self.table_name, item))
                         return None
                     id = r[0]
 
@@ -106,10 +137,10 @@ class FTSDictionary:
                         con.close()
         else:
             if self.todata.has_key(item):
-                log.debug('DICTIONARY_HIT: %s[%s]' % (self.column_name, item))
+                log.debug('DICTIONARY_HIT: %s[%s]' % (self.table_name, item))
                 return self.todata.__getitem__(item)
             else:
-                log.debug('DICTIONARY_MISS: %s[%s]' % (self.column_name, item))
+                log.debug('DICTIONARY_MISS: %s[%s]' % (self.table_name, item))
                 con = None
                 try:
                     con = sqlite3.connect(self.file)
@@ -118,7 +149,7 @@ class FTSDictionary:
                     cur.execute( self.sql_select_content_by_id,[item])
                     r = cur.fetchone()
                     if r is None:
-                        log.debug('DATABASE_MISS: %s[%s]' % (self.column_name, item))
+                        log.debug('DATABASE_MISS: %s[%s]' % (self.table_name, item))
                         return None
                     content = r[0]
 

@@ -4,8 +4,6 @@ from accustik.database.utils import run_query
 from time_util import stopwatch
 
 d = FTSDictionary('test.db', 'artists')
-run_query('test.db',d.sql_drop_table)
-run_query('test.db',d.sql_create_table)
 
 def ngen():
     times = 100000
@@ -56,3 +54,11 @@ print d.add('bob')
 print d.add('charles')
 
 print d.count_cache()
+
+s = stopwatch()
+
+x = d['charles']
+
+print s
+
+print x
