@@ -12,7 +12,7 @@ class Library:
 
     def __init__(self, dbfile):
         self.dbfile = dbfile
-        self.songs = FTSSongData(self.dbfile, True)
+        self.songs = FTSSongData(self.dbfile, False)
 
     def add_file(self, path):
         reader = get_reader(path)
@@ -34,3 +34,13 @@ class Library:
             else:
                 yield sd
 
+    def select(self):
+        from accustik.database.utils import stopwatch
+        s = stopwatch()
+        songs = self.songs.select_using_cache()
+        print s.stop()
+        for song in songs:
+            print song
+
+    def clear_cache(self):
+        self.songs.clear_cache()
