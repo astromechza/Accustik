@@ -4,7 +4,7 @@ import logging
 from accustik.logger import log
 log.setLevel(logging.CRITICAL)
 
-from accustik.database.Library import Library
+from accustik.database.AccustikLibrary import Library
 os.remove('test.db')
 l = Library('test.db')
 
