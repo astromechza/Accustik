@@ -2,6 +2,7 @@ from accustik.logger import log
 import os
 from accustik.database.FTSSongData import FTSSongData
 from accustik.data.DataReaders import get_reader
+from accustik.utils.Stopwatch import stopwatch
 
 class Library:
     """
@@ -35,7 +36,6 @@ class Library:
                 yield sd
 
     def select(self):
-        from accustik.database.utils import stopwatch
         s = stopwatch()
         songs = self.songs.select_using_cache()
         print s.stop()

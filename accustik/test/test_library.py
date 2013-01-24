@@ -1,5 +1,6 @@
 import os
-from accustik.database.utils import stopwatch
+from accustik.utils.Stopwatch import stopwatch
+
 import logging
 from accustik.logger import log
 log.setLevel(logging.DEBUG)
@@ -9,7 +10,7 @@ os.remove('test.db')
 l = Library('test.db')
 
 mp3folder = 'C:\\Users\\Ben\\Music\\test music'
-#
+
 s = stopwatch()
 l.add_folder(mp3folder)
 print s.stop()

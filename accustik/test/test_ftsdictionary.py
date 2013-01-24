@@ -1,7 +1,7 @@
 from accustik.database.FTSDictionary import FTSDictionary
 
-from accustik.database.utils import run_query
-from accustik.database.utils import stopwatch
+from accustik.utils.Stopwatch import stopwatch
+
 
 d = FTSDictionary('test.db', 'artists')
 
