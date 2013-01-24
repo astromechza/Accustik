@@ -104,66 +104,111 @@ class FTSDictionary:
             if con:
                 con.close()
 
+
     def __getitem__(self, item):
         if isinstance(item, basestring):
-            if self.fromdata.has_key(item):
-                log.debug('DICTIONARY_HIT: %s[%s]' % (self.table_name, item))
-                return self.fromdata.__getitem__(item)
-            else:
-                log.debug('DICTIONARY_MISS: %s[%s]' % (self.table_name, item))
-                con = None
-                try:
-                    con = sqlite3.connect(self.file)
-                    cur = con.cursor()
+            return self.get_id_for_content(item)
+        elif isinstance(item, int):
+            return self.get_content_from_id(item)
+        raise ValueError('Unknown lookup type %s , must be of type STRING or INT' % type(item))
 
-                    cur.execute( self.sql_select_id_by_content,[item])
-                    r = cur.fetchone()
-                    if r == None:
-                        log.debug('DATABASE_MISS: %s[%s]' % (self.table_name, item))
-                        return None
-                    id = r[0]
+    def get_using_conn(self, item, connection):
+        if isinstance(item, basestring):
+            return self.get_id_for_content(item, connection)
+        elif isinstance(item, int):
+            return self.get_content_from_id(item, connection)
+        raise ValueError('Unknown lookup type %s , must be of type STRING or INT' % type(item))
 
-                    con.commit()
-                    con.close()
-                    con = None
-                    self.todata[id] = item
-                    self.fromdata[item] = id
-                    return id
-                except sqlite3.Error:
-                    log.exception('')
-                    return None
-                finally:
-                    if con:
-                        con.close()
+    def get_id_for_content(self, content, existing_connection = None):
+        """
+        GET the id for the given content. If a connection exists use it.
+        cases:
+            1. content is None or blank: return -1
+            2. content is in dictionary: awesome! return the id     [CACHE HIT]
+            3. content is not in dictionary: hmm check in database  [CACHE MISS]
+                3.1 content was in database: great! return and update dictionary    [DATABASE HIT]
+                3.2 content was NOT in database: ok ADD the content as a new id     [DATABASE MISS/SET]
+        """
+
+        if content is None or len(content) == 0:
+            return -1
+        elif self.fromdata.has_key(content):
+            log.debug('CACHE_HIT: %s[%s]' % (self.table_name, content))
+            return self.fromdata.__getitem__(content)
         else:
-            if self.todata.has_key(item):
-                log.debug('DICTIONARY_HIT: %s[%s]' % (self.table_name, item))
-                return self.todata.__getitem__(item)
-            else:
-                log.debug('DICTIONARY_MISS: %s[%s]' % (self.table_name, item))
-                con = None
-                try:
+            log.debug('CACHE_MISS: %s[%s]' % (self.table_name, content))
+
+            con = existing_connection
+            try:
+                if con is None:
                     con = sqlite3.connect(self.file)
-                    cur = con.cursor()
-
-                    cur.execute( self.sql_select_content_by_id,[item])
-                    r = cur.fetchone()
-                    if r is None:
-                        log.debug('DATABASE_MISS: %s[%s]' % (self.table_name, item))
-                        return None
-                    content = r[0]
-
-                    con.commit()
-                    con.close()
-                    con = None
-                    self.todata[item] = content
-                    self.fromdata[content] = item
-                    return content
-                except sqlite3.Error:
-                    log.exception('')
-                    return None
-                finally:
+                cur = con.cursor()
+                cur.execute(self.sql_select_id_by_content, [content])
+                r = cur.fetchone()
+                if r is None:
+                    log.debug('DATABASE INSERT: %s[%s]' % (self.table_name, content))
+                    cur.execute(self.sql_insert, [content])
+                    id = cur.lastrowid
+                else:
+                    log.debug('DATABASE HIT: %s[%s]' % (self.table_name, content))
+                    id = r[0]
+                self.todata[id] = content
+                self.fromdata[content] = id
+                return id
+            except sqlite3.Error:
+                log.exception('')
+                return -1
+            finally:
+                # if an original connection existed. dont close it
+                if existing_connection is None:
                     if con:
+                        con.commit()
+                        con.close()
+
+    def get_content_from_id(self, id, existing_connection = None):
+        """
+        GET the content for a given id. If a connection exists use it.
+        cases:
+            1. id is invalid (id < 1) : return blank string. (Does not have an artist/genre/album)
+            2. id is already in dictionary: awesome! return the data in the dictionary
+            3. id is NOT in dictionary: check in database
+                3.1 was in database: great! retreive and put in dictionary before returning
+                3.2 was NOT in database: oh dear! return None to indicate broken link that should be repaired
+
+        """
+
+        if id < 1:
+            return ''
+        elif self.todata.has_key(id):
+            log.debug('CACHE_HIT: %s[%s]' % (self.table_name, id))
+            return self.todata.__getitem__(id)
+        else:
+            log.debug('CACHE_MISS: %s[%s]' % (self.table_name, id))
+
+            con = existing_connection
+            try:
+                if con is None:
+                    con = sqlite3.connect(self.file)
+                cur = con.cursor()
+                cur.execute(self.sql_select_content_by_id, [id])
+                r = cur.fetchone()
+                if r is None:
+                    log.debug('DATABASE MISS: %s[%s]' % (self.table_name, id))
+                    return None
+                else:
+                    log.debug('DATABASE HIT: %s[%s]' % (self.table_name, id))
+                    content = r[0]
+                    self.todata[id] = content
+                    self.fromdata[content] = id
+                    return content
+            except sqlite3.Error:
+                log.exception('')
+                return None
+            finally:
+                # if an original connection existed. dont close it
+                if existing_connection is None:
+                    if con:
+                        con.commit()
                         con.close()
 
     def update(self, lookup, new_content):
